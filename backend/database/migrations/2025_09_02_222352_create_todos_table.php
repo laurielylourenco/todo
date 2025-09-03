@@ -11,10 +11,13 @@ class CreateTodosTable extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('todos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Chave estrangeira para o usuário
+            $table->string('title');
+            $table->boolean('completed')->default(false);
             $table->timestamps();
         });
     }
