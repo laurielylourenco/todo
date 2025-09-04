@@ -30,11 +30,11 @@ class TodoTest extends TestCase
         // 1. Cenário (Arrange)
         // Criamos dois usuários e uma tarefa para cada um
         $userA = User::factory()->create();
-        $userA = User::find($userA->id); 
+        $userA = User::find($userA->id);
         $todoFromUserA = Todo::factory()->create(['user_id' => $userA->id]);
 
         $userB = User::factory()->create();
-        $userB = User::find($userB->id); 
+        $userB = User::find($userB->id);
         $todoFromUserB = Todo::factory()->create(['user_id' => $userB->id]);
 
         // 2. Ação (Act)
@@ -66,8 +66,8 @@ class TodoTest extends TestCase
         // 1. Cenário (Arrange)
         // Apenas precisamos de um usuário autenticado
         $user = User::factory()->create();
-        $user = User::find($user->id); 
-        
+        $user = User::find($user->id);
+
         $taskData = [
             'title' => 'Minha primeira tarefa via API'
         ];
@@ -79,7 +79,7 @@ class TodoTest extends TestCase
         // 3. Verificação (Assert)
         // Verificamos se a tarefa foi criada com sucesso (status 201)
         $response->assertStatus(201);
-        
+
         // Verificamos se a resposta contém o título que enviamos
         $response->assertJsonFragment($taskData);
 
@@ -88,6 +88,61 @@ class TodoTest extends TestCase
             'title' => 'Minha primeira tarefa via API',
             'user_id' => $user->id,
             'completed' => false // O valor padrão
+        ]);
+    }
+
+    public function test_user_can_update_a_todo(): void
+    {
+        // 1. Cenário (Arrange)
+        // Apenas precisamos de um usuário autenticado
+        $user = User::factory()->create();
+        $user = User::find($user->id);
+
+        $task  = Todo::factory()->create(['user_id' => $user->id]);
+
+        $taskData = [
+            'title' => 'vamos tooooddddddddddooooooooooo atualizar a tarefa',
+            'completed' => true
+        ];
+
+        // crie uma tarefa para o usuário
+        // 2. Ação (Act)
+        // Nos autenticamos como o usuário e enviamos os dados da nova tarefa para o endpoint de criação
+        $response = $this->actingAs($user)->putJson("/api/todos/{$task->id}", $taskData);
+
+
+        // 3. Verificação (Assert)
+        // Verificamos se a tarefa foi criada com sucesso (status 200)
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('todos', [
+            'title' => 'vamos tooooddddddddddooooooooooo atualizar a tarefa',
+            'user_id' => $user->id,
+            'completed' => true // O valor atualizado
+        ]);
+    }
+
+
+    public function test_user_can_delete_a_todo(): void
+    {
+        //1.Cenario (Arrange)
+
+        $user = User::factory()->create();
+        $user = User::find($user->id);
+
+        //crie uma tarefas para o usuário 
+        $task  = Todo::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->actingAs($user)->deleteJson("/api/todos/{$task->id}");
+
+        //2.Acao 
+
+        $response->assertStatus(204);
+
+        // 3 . Verificacao 
+        $this->assertDatabaseMissing('todos', [
+            'id' => $task->id,
+            'user_id' => $user->id,
         ]);
     }
 }
