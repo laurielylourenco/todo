@@ -5,14 +5,14 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: todo_app 
+    container_name: todo_app
     restart: unless-stopped
     working_dir: /var/www/
     volumes:
       - ./backend:/var/www
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
 
   nginx:
     image: nginx:alpine
@@ -38,9 +38,21 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 5
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: todo_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    
 volumes:
   db_data:
