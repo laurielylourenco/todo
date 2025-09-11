@@ -45,6 +45,8 @@
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../../services/api'; // ajuste o caminho conforme necessário
+import { useAuthStore } from '../../../stores/auth';
+
 
 const form = reactive({
   email:'',
@@ -52,23 +54,31 @@ const form = reactive({
 });
 
 const errorMessage = ref('');
+
+
 const router = useRouter();
 
 const handleLogin = async () => {
   errorMessage.value = '';
   try {
+    const authstore = useAuthStore();
     const response = await api.post('/login', {
       email: form.email,
       password: form.password
     });
 
+    console.log('Resposta do login:', response.data);
 
     const token = response.data.token;
-    localStorage.setItem('token', token);
+
+    authstore.setAuthData(response.data.access_token, response.data.user);
+  //  localStorage.setItem('token', token);
 
 
     router.push('/'); 
   } catch (error) {
+
+    console.error('Erro ao fazer login:', error);
     if (error.response && error.response.data && error.response.data.message) {
       errorMessage.value = error.response.data.message;
     } else {
